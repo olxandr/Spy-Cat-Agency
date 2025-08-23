@@ -11,8 +11,7 @@ import (
 	"time"
 
 	"spy-cat-agency/internal/models"
-
-	"github.com/go-playground/validator/v10"
+	"spy-cat-agency/internal/validator"
 )
 
 type Breed struct {
@@ -29,7 +28,7 @@ type Breeds struct {
 type Service struct {
 	Repo
 	*Breeds
-	Validate *validator.Validate
+	Validate *validator.Validator
 }
 
 func NewBreeds(breedsApi string) (*Breeds, error) {
@@ -45,12 +44,11 @@ func NewBreeds(breedsApi string) (*Breeds, error) {
 	return b, nil
 }
 
-func (b *Breeds) Exists(fl validator.FieldLevel) bool {
+func (b *Breeds) Exists(breed string) bool {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
-	breedName := fl.Field().String()
-	_, found := b.Cache[breedName]
+	_, found := b.Cache[breed]
 	return found
 }
 
@@ -82,10 +80,6 @@ func (b *Breeds) Fetch() error {
 
 	slog.Info("Breeds cache populated", "breeds", len(b.Cache))
 	return nil
-}
-
-func (s *Service) ValidateCat(cat *models.Cat) (validator.ValidationErrors, bool) {
-	return cat.Valid(s.Validate)
 }
 
 func (s *Service) Create(ctx context.Context, cat *models.Cat) (int64, error) {

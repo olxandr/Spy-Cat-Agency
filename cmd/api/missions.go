@@ -10,6 +10,7 @@ import (
 
 	"spy-cat-agency/internal/missions"
 	"spy-cat-agency/internal/models"
+	"spy-cat-agency/internal/validator"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,8 +33,17 @@ func (app *application) createMission(c *gin.Context) {
 		return
 	}
 
-	if validationErrors, ok := app.missions.ValidateMission(&mission); !ok {
-		returnValidationErrors(c, validationErrors)
+	v := validator.New()
+	v.Check(mission.ID != 0, "id", validator.ErrZeroID.Error())
+	v.Check(mission.CatID != 0, "cat_id", validator.ErrZeroID.Error())
+	for _, target := range mission.Targets {
+		v.Check(target.ID != 0, "id", validator.ErrZeroID.Error())
+		v.Check(target.Country != "", "country", validator.ErrEmptyFIeld.Error())
+		v.Check(target.Name != "", "name", validator.ErrEmptyFIeld.Error())
+	}
+
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
 
@@ -65,6 +75,13 @@ func (app *application) deleteMission(c *gin.Context) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid mission ID"})
+		return
+	}
+
+	v := validator.New()
+	v.Check(id != 0, "id", validator.ErrZeroID.Error())
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
 
@@ -104,6 +121,13 @@ func (app *application) completeMission(c *gin.Context) {
 		return
 	}
 
+	v := validator.New()
+	v.Check(id != 0, "id", validator.ErrZeroID.Error())
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
+		return
+	}
+
 	if err := app.missions.UpdateAsCompleted(c, id); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -140,8 +164,11 @@ func (app *application) updateTargetNotes(c *gin.Context) {
 		return
 	}
 
-	if target.ID == 0 || target.Notes == "" {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Invalid target ID or notes"})
+	v := validator.New()
+	v.Check(target.ID != 0, "id", validator.ErrZeroID.Error())
+	v.Check(target.Notes != "", "notes", validator.ErrEmptyFIeld.Error())
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
 
@@ -187,6 +214,13 @@ func (app *application) deleteTarget(c *gin.Context) {
 		return
 	}
 
+	v := validator.New()
+	v.Check(id != 0, "id", validator.ErrZeroID.Error())
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
+		return
+	}
+
 	if err := app.missions.DeleteTarget(c, id); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -228,13 +262,17 @@ func (app *application) addTargets(c *gin.Context) {
 		return
 	}
 
-	if validationErrors, ok := app.missions.ValidateMission(&mission); !ok {
-		returnValidationErrors(c, validationErrors)
-		return
+	v := validator.New()
+	v.Check(mission.ID != 0, "id", validator.ErrZeroID.Error())
+	for _, target := range mission.Targets {
+		v.Check(target.ID != 0, "id", validator.ErrZeroID.Error())
+		v.Check(target.Country != "", "country", validator.ErrEmptyFIeld.Error())
+		v.Check(target.Name != "", "name", validator.ErrEmptyFIeld.Error())
 	}
 
-	if len(mission.Targets) == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "no targets provided"})
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
+		return
 	}
 
 	newTargets, err := app.missions.AddTargets(c, mission.ID, mission.Targets)
@@ -279,18 +317,22 @@ func (app *application) assignCat(c *gin.Context) {
 		return
 	}
 
-	if validationErrors, ok := app.missions.ValidateMission(&mission); !ok {
-		returnValidationErrors(c, validationErrors)
+	v := validator.New()
+	v.Check(mission.ID != 0, "id", validator.ErrZeroID.Error())
+	v.Check(mission.CatID != 0, "cat_id", validator.ErrZeroID.Error())
+
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
 
-	if err := app.missions.AssignCat(c, mission.ID, *mission.CatID); err != nil {
+	if err := app.missions.AssignCat(c, mission.ID, mission.CatID); err != nil {
 		switch {
 		case errors.Is(err, missions.ErrMissionNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Mission with id %d doesn't exist", mission.ID)})
 			return
 		case errors.Is(err, missions.ErrCatNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Cat with id %d doesn't exist", *mission.CatID)})
+			c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Cat with id %d doesn't exist", mission.CatID)})
 			return
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
@@ -349,6 +391,14 @@ func (app *application) getMission(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid mission ID"})
 		return
 	}
+
+	v := validator.New()
+	v.Check(id != 0, "id", validator.ErrZeroID.Error())
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
+		return
+	}
+
 	mission, err := app.missions.Get(c, id)
 	if err != nil {
 		switch {

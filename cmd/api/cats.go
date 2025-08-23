@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"spy-cat-agency/internal/models"
+	"spy-cat-agency/internal/validator"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,17 +25,23 @@ import (
 // @Failure 500 {object} map[string]interface{}
 // @Router /cats/create [post]
 func (app *application) createCat(c *gin.Context) {
-	var cat *models.Cat
-	if err := c.ShouldBindJSON(&cat); err != nil {
+	var (
+		v   = validator.New()
+		cat = &models.Cat{}
+	)
+	if err := c.ShouldBindJSON(cat); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	if validationErrors, ok := app.cats.ValidateCat(cat); !ok {
-		returnValidationErrors(c, validationErrors)
+	v.Check(cat.Name != "", "name", validator.ErrEmptyFIeld.Error())
+	v.Check(cat.Breed != "", "breed", "can't be empty")
+	v.Check(app.cats.Breeds.Exists(cat.Breed), "breed", "invalid breed")
+
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
-
 	id, err := app.cats.Create(c, cat)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unexpected error while creating a cat, try again later"})
@@ -58,11 +65,19 @@ func (app *application) createCat(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{}
 // @Router /cats/remove/{id} [delete]
 func (app *application) removeCat(c *gin.Context) {
+	v := validator.New()
 	idStr := c.Param("id")
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid cat ID"})
+		return
+	}
+
+	v.Check(id != 0, "id", validator.ErrZeroID.Error())
+
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
 
@@ -94,14 +109,17 @@ func (app *application) removeCat(c *gin.Context) {
 // @Failure 500 {object} map[string]interface{}
 // @Router /cats/update_salary [put]
 func (app *application) updateCatsSalary(c *gin.Context) {
-	var cat *models.Cat
+	cat := &models.Cat{}
 	if err := c.ShouldBindJSON(&cat); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	if validationErrors, ok := app.cats.ValidateCat(cat); !ok {
-		returnValidationErrors(c, validationErrors)
+	v := validator.New()
+	v.Check(cat.Salary != 0, "salary", validator.ErrEmptyFIeld.Error())
+	v.Check(cat.ID != 0, "id", validator.ErrZeroID.Error())
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
 
@@ -158,6 +176,13 @@ func (app *application) getCat(c *gin.Context) {
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid cat ID"})
+		return
+	}
+
+	v := validator.New()
+	v.Check(id != 0, "id", validator.ErrZeroID.Error())
+	if !v.Valid() {
+		writeJSONValidationErrors(c, v.Errors)
 		return
 	}
 

@@ -1,10 +1,7 @@
 package missions
 
-import "github.com/go-playground/validator/v10"
-
-func NewService(repo *Repository, valid *validator.Validate) *Service {
+func NewService(repo *Repository) *Service {
 	return &Service{
-		Repo:     repo,
-		Validate: valid,
+		Repo: repo,
 	}
 }

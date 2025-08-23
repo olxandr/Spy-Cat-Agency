@@ -2,19 +2,15 @@ package missions
 
 import (
 	"context"
+	"errors"
 
 	"spy-cat-agency/internal/models"
-
-	"github.com/go-playground/validator/v10"
 )
+
+var ErrInvalidID = errors.New("ID can't be 0")
 
 type Service struct {
 	Repo
-	Validate *validator.Validate
-}
-
-func (s *Service) ValidateMission(mission *models.Mission) (validator.ValidationErrors, bool) {
-	return mission.Valid(s.Validate)
 }
 
 func (s *Service) Create(ctx context.Context, mission *models.Mission) (*models.Mission, error) {

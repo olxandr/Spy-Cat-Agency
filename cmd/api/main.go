@@ -9,13 +9,14 @@ import (
 	"spy-cat-agency/internal/env"
 	"spy-cat-agency/internal/missions"
 	"spy-cat-agency/internal/storage"
+	"spy-cat-agency/internal/validator"
 
-	"github.com/go-playground/validator/v10"
+	_ "spy-cat-agency/docs"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
-	_ "spy-cat-agency/docs"
 )
 
 // @title Spy Cat Agency API
@@ -42,6 +43,7 @@ type application struct {
 	config
 	cats     *cats.Service
 	missions *missions.Service
+	valid    *validator.Validator
 }
 
 func main() {
@@ -55,8 +57,6 @@ func main() {
 			MaxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 		},
 	}
-
-	valid := validator.New()
 
 	db, err := storage.ConnectSQL(cfg.db)
 	if err != nil {
@@ -79,18 +79,16 @@ func main() {
 	}
 
 	catsRepo := cats.NewRepository(db)
-	catsService := cats.NewService(catsRepo, valid, breeds)
+	catsService := cats.NewService(catsRepo, breeds)
 
 	missionsRepo := missions.NewRepository(db)
-	missionsService := missions.NewService(missionsRepo, valid)
-
-	valid.RegisterValidation("validBreed", catsService.Exists)
-	catsService.Validate = valid
+	missionsService := missions.NewService(missionsRepo)
 
 	app := &application{
 		config:   cfg,
 		cats:     catsService,
 		missions: missionsService,
+		valid:    validator.New(),
 	}
 
 	slog.Info("Listening on", "port", cfg.port)

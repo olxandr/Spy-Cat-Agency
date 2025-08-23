@@ -96,7 +96,7 @@ func (r *Repository) Create(ctx context.Context, mission *models.Mission) (*mode
 
 	newMission := &models.Mission{
 		ID:          missionID,
-		CatID:       new(int),
+		CatID:       mission.CatID,
 		IsCompleted: false,
 		CreatedAt:   time.Time{},
 		Targets:     targets,
