@@ -1,0 +1,563 @@
+basePath: /
+definitions:
+  models.Cat:
+    properties:
+      breed:
+        maxLength: 50
+        minLength: 2
+        type: string
+      id:
+        type: integer
+      mission_id:
+        type: integer
+      name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      salary:
+        type: number
+      yoe:
+        type: integer
+    required:
+    - breed
+    - name
+    - salary
+    type: object
+  models.Mission:
+    properties:
+      cat_id:
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      is_completed:
+        type: boolean
+      targets:
+        items:
+          $ref: '#/definitions/models.Target'
+        type: array
+    type: object
+  models.Target:
+    properties:
+      country:
+        maxLength: 50
+        minLength: 2
+        type: string
+      id:
+        type: integer
+      is_completed:
+        type: boolean
+      mission_id:
+        type: integer
+      name:
+        maxLength: 50
+        minLength: 2
+        type: string
+      notes:
+        type: string
+    required:
+    - country
+    - name
+    type: object
+host: localhost:7777
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server for a spy cat agency.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Spy Cat Agency API
+  version: "1.0"
+paths:
+  /cats/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new spy cat
+      parameters:
+      - description: Cat object
+        in: body
+        name: cat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Cat'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new cat
+      tags:
+      - cats
+  /cats/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a spy cat by ID
+      parameters:
+      - description: Cat ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Cat'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a cat by ID
+      tags:
+      - cats
+  /cats/list:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all spy cats
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Cat'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all cats
+      tags:
+      - cats
+  /cats/remove/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove a spy cat by ID
+      parameters:
+      - description: Cat ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Remove a cat
+      tags:
+      - cats
+  /cats/update_salary:
+    put:
+      consumes:
+      - application/json
+      description: Update a spy cat's salary by ID
+      parameters:
+      - description: Cat object
+        in: body
+        name: cat
+        required: true
+        schema:
+          $ref: '#/definitions/models.Cat'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a cat's salary
+      tags:
+      - cats
+  /missions/add_targets:
+    put:
+      consumes:
+      - application/json
+      description: Add new targets to an existing mission
+      parameters:
+      - description: Mission object with new targets
+        in: body
+        name: mission
+        required: true
+        schema:
+          $ref: '#/definitions/models.Mission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Add targets to a mission
+      tags:
+      - missions
+  /missions/assign:
+    put:
+      consumes:
+      - application/json
+      description: Assign a spy cat to an existing mission
+      parameters:
+      - description: Mission object with cat ID
+        in: body
+        name: mission
+        required: true
+        schema:
+          $ref: '#/definitions/models.Mission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Assign a cat to a mission
+      tags:
+      - missions
+  /missions/complete/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Mark a mission as completed
+      parameters:
+      - description: Mission ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Complete a mission
+      tags:
+      - missions
+  /missions/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new mission
+      parameters:
+      - description: Mission object
+        in: body
+        name: mission
+        required: true
+        schema:
+          $ref: '#/definitions/models.Mission'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Mission'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new mission
+      tags:
+      - missions
+  /missions/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a mission by ID
+      parameters:
+      - description: Mission ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a mission
+      tags:
+      - missions
+  /missions/delete_target/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a target by ID
+      parameters:
+      - description: Target ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Delete a target
+      tags:
+      - missions
+  /missions/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a mission by ID
+      parameters:
+      - description: Mission ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Mission'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get a mission by ID
+      tags:
+      - missions
+  /missions/list:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all missions
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Mission'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: List all missions
+      tags:
+      - missions
+  /missions/update_notes:
+    put:
+      consumes:
+      - application/json
+      description: Update the notes for a target
+      parameters:
+      - description: Target object
+        in: body
+        name: target
+        required: true
+        schema:
+          $ref: '#/definitions/models.Target'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+        "422":
+          description: Unprocessable Entity
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update target notes
+      tags:
+      - missions
+swagger: "2.0"

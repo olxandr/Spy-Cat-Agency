@@ -1,0 +1,66 @@
+services:
+  spy-cat-agency:
+    build: .
+    ports:
+      - "7777:7777"
+    env_file:
+    - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:7777/healthcheck || exit 1"]
+      interval: 1m
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+    environment:
+      DB_PROVIDER: ${DB_PROVIDER}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      SPY_CAT_AGENCY_PORT: ${SPY_CAT_AGENCY_PORT}
+      DB_DSN: ${DB_DSN}
+      CATS_BREEDS_API: ${CATS_BREEDS_API}
+    networks:
+      - spy-cat-agency
+  db:
+    image: postgres:17.6-alpine3.22
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      POSTGRES_DB:       ${DB_NAME}
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 10s
+    networks:
+      - spy-cat-agency
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - spy-cat-agency
+
+volumes:
+  pgdata:
+
+networks:
+  spy-cat-agency:
+    driver: bridge

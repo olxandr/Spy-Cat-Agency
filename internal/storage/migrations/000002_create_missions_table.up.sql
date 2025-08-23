@@ -1,0 +1,7 @@
+CREATE TABLE missions (
+    id SERIAL PRIMARY KEY,
+    cat_id INT UNIQUE REFERENCES cats(id) ON DELETE SET NULL,
+    is_completed BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
