@@ -38,7 +38,6 @@ This will start the following services:
 
 -   **spy-cat-agency:** The main Go application, available at `http://localhost:7777`
 -   **db:** A PostgreSQL database, available on port `5432`
--   **adminer:** A database management tool, available at `http://localhost:8080`
 
 To stop the application, run:
 
