@@ -12,8 +12,8 @@ This is a sample server for a spy cat agency.
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/spycats.git
-    cd spycats
+    git clone git@github.com:olxandr/Spy-Cat-Agency.git
+    cd Spy-Cat-Agency
     ```
 
 2.  **Create an environment file:**
